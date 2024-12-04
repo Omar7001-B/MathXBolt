@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = "neko.pylex.xyz:10303";
+const SOCKET_URL = "http://neko.pylex.xyz:10303/";
 
 console.log('SOCKET_URL', SOCKET_URL);
 

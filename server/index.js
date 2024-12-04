@@ -2,7 +2,7 @@ import express from "express";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import cors from "cors";
-import os from "os"; // Import os module to get the hostname or IP
+import os from "os";
 
 const app = express();
 const httpServer = createServer(app);
@@ -12,6 +12,7 @@ const io = new Server(httpServer, {
     methods: ["GET", "POST"],
     credentials: true,
   },
+  transports: ["websocket", "polling"],
 });
 
 app.use(cors());

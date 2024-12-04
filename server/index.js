@@ -7,10 +7,10 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: [
+    origin: "*" /*[
       "http://localhost:5173", // Local development
       process.env.DEPLOYED_URL, // Deployed URL from env variable
-    ],
+    ]*/,
     methods: ["GET", "POST"],
     credentials: true,
   },

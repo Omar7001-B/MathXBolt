@@ -8,11 +8,15 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: [
+      "http://localhost:5173", // Local development
+      "https://math-x-bolt.vercel.app", // Your deployed game URL
+      "http://math-x-bolt.vercel.app", // Your deployed game URL
+    ],
     methods: ["GET", "POST"],
-    credentials: true,
+    credentials: true, // Allow credentials like cookies
   },
-  transports: ["websocket", "polling"],
+  transports: ["websocket", "polling"], // Allow both WebSocket and polling
 });
 
 app.use(cors());

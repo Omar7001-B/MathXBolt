@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UsernameForm } from './components/UsernameForm';
 import { MainMenu } from './components/MainMenu';
 import { CreateGame } from './components/CreateGame';
 import { JoinGame } from './components/JoinGame';
 import { GameBoard } from './components/GameBoard';
 import { Game, GameSettings } from './types/game';
-import { createGame } from './utils/gameUtils';
+import { socket, createGameSocket, joinGameSocket, startGameSocket } from './utils/socket';
 
 type GameScreen = 'username' | 'menu' | 'create' | 'join' | 'play';
 
@@ -14,65 +14,61 @@ function App() {
   const [username, setUsername] = useState<string>('');
   const [game, setGame] = useState<Game | null>(null);
 
+  useEffect(() => {
+    socket.on('gameUpdate', (updatedGame: Game) => {
+      setGame(updatedGame);
+      if (updatedGame.status === 'playing') {
+        setScreen('play');
+      }
+    });
+
+    socket.on('error', (error: string) => {
+      console.error('Game error:', error);
+      // Handle error appropriately in the UI
+    });
+
+    return () => {
+      socket.off('gameUpdate');
+      socket.off('error');
+    };
+  }, []);
+
   const handleUsernameSubmit = (name: string) => {
     setUsername(name);
     setScreen('menu');
   };
 
   const handleCreateGame = () => {
-    const newGame = createGame(username, {
+    const gameId = Math.random().toString(36).substring(7);
+    const settings = {
       minNumber: 1,
       maxNumber: 20,
       questionsCount: 10,
-    });
-    setGame(newGame);
+    };
+    createGameSocket(gameId, username, settings);
     setScreen('create');
   };
 
   const handleUpdateSettings = (settings: GameSettings) => {
     if (game) {
-      const updatedGame = {
-        ...game,
-        settings,
-        questions: createGame(username, settings).questions // Regenerate questions with new settings
-      };
-      setGame(updatedGame);
+      createGameSocket(game.id, username, settings);
     }
   };
 
   const handleStartGame = () => {
     if (game) {
-      setGame({ ...game, status: 'playing' });
-      setScreen('play');
+      startGameSocket(game.id);
     }
   };
 
   const handleJoinGame = (gameId: string) => {
-    // In a real app, this would validate the game ID and join an existing game
-    console.log('Joining game:', gameId);
-    setScreen('play');
+    joinGameSocket(gameId, username);
   };
 
   const handleAnswer = (answer: number) => {
-    if (!game) return;
-
-    setGame(currentGame => {
-      const updatedGame = { ...currentGame };
-      const player = updatedGame.players.find(p => p.username === username)!;
-      const question = updatedGame.questions[player.currentQuestion];
-
-      if (answer === question.answer) {
-        player.points += 1;
-        player.currentQuestion += 1;
-
-        if (player.currentQuestion === updatedGame.questions.length) {
-          updatedGame.status = 'finished';
-          updatedGame.winner = username;
-        }
-      }
-
-      return updatedGame;
-    });
+    if (game) {
+      socket.emit('submitAnswer', { gameId: game.id, username, answer });
+    }
   };
 
   return (

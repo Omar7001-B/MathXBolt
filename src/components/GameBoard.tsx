@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Game, Question } from '../types/game';
+import { updateGame } from '../utils/gameUtils';
 
 interface GameBoardProps {
   game: Game;
@@ -9,9 +10,25 @@ interface GameBoardProps {
 
 export const GameBoard: React.FC<GameBoardProps> = ({ game, currentPlayer, onAnswer }) => {
   const [answer, setAnswer] = useState('');
-  const player = game.players.find(p => p.username === currentPlayer)!;
+  const player = game.players.find(p => p.username === currentPlayer);
   const opponent = game.players.find(p => p.username !== currentPlayer);
-  const isGameFinished = player.currentQuestion >= game.questions.length;
+  
+  useEffect(() => {
+    // Update the game in our storage whenever it changes
+    if (game.id) {
+      updateGame(game.id, game);
+    }
+  }, [game]);
+
+  if (!player) {
+    return (
+      <div className="max-w-2xl w-full p-6 bg-white rounded-lg shadow-lg text-center">
+        <p className="text-xl text-red-600">Error: Player not found in game</p>
+      </div>
+    );
+  }
+
+  const isGameFinished = game.status === 'finished' || player.currentQuestion >= game.questions.length;
   const currentQuestion: Question | undefined = game.questions[player.currentQuestion];
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -14,7 +14,7 @@ const io = new Server(httpServer, {
       "http://math-x-bolt.vercel.app", // Your deployed game URL
     ],
     methods: ["GET", "POST"],
-    credentials: true, // Allow credentials like cookies
+    credentials: false, // Allow credentials like cookies
   },
   transports: ["websocket", "polling"], // Allow both WebSocket and polling
 });
